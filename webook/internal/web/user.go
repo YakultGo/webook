@@ -9,6 +9,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 // UserHandler 与用户有关的路由
@@ -114,8 +115,43 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "登录成功")
 }
 func (u *UserHandler) Edit(ctx *gin.Context) {
-
+	type EditReq struct {
+		Name        string `json:"name"`
+		birthday    string `json:"birthday"`
+		description string `json:"desciption"`
+	}
+	var req EditReq
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	// 从session中获取userId
+	sess := sessions.Default(ctx)
+	userId := sess.Get("userId")
+	birth, err := time.Parse("2006-01-02", req.birthday)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	err = u.svc.Edit(ctx, domain.User{
+		Id:          userId.(int64),
+		NickName:    req.Name,
+		Birthday:    birth,
+		Description: req.description,
+	})
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	ctx.String(http.StatusOK, "修改成功")
 }
 func (u *UserHandler) Profile(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "profile")
+	// 从session中获取userId
+	sess := sessions.Default(ctx)
+	userId := sess.Get("userId")
+	user, err := u.svc.Profile(ctx, userId.(int64))
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	ctx.JSON(http.StatusOK, user)
 }
