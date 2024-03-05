@@ -8,6 +8,7 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"time"
 )
@@ -36,7 +37,8 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 	ug := server.Group("/users")
 	ug.GET("/profile", u.Profile)
 	ug.POST("/signup", u.Signup)
-	ug.POST("/login", u.Login)
+	//ug.POST("/login", u.Login)
+	ug.POST("/login", u.LoginJWT)
 	ug.POST("/edit", u.Edit)
 	ug.POST("/logout", u.Logout)
 }
@@ -118,6 +120,41 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	sess.Save()
 	ctx.String(http.StatusOK, "登录成功")
 }
+
+func (u *UserHandler) LoginJWT(ctx *gin.Context) {
+	type LoginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var req LoginReq
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	user, err := u.svc.Login(ctx, domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if errors.Is(err, service.ErrInvalidUserOrPassword) {
+		ctx.String(http.StatusOK, "账号/密码错误")
+		return
+	}
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	// 在这里使用JWT生成token
+	token := jwt.New(jwt.SigningMethodHS512)
+	tokenStr, err := token.SignedString([]byte("4a1LwMzFjaCW4HrJETQsR8ybdYq82WMV"))
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "系统错误")
+		return
+	}
+	ctx.Header("x-jwt-token", tokenStr)
+	fmt.Println(tokenStr)
+	fmt.Println(user)
+	ctx.String(http.StatusOK, "登录成功")
+}
+
 func (u *UserHandler) Logout(ctx *gin.Context) {
 	sess := sessions.Default(ctx)
 	sess.Options(sessions.Options{MaxAge: -1})
@@ -125,7 +162,6 @@ func (u *UserHandler) Logout(ctx *gin.Context) {
 	sess.Clear()
 	ctx.String(http.StatusOK, "退出成功")
 }
-
 func (u *UserHandler) Edit(ctx *gin.Context) {
 	type EditReq struct {
 		Name        string `json:"name"`
@@ -158,12 +194,12 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 }
 func (u *UserHandler) Profile(ctx *gin.Context) {
 	// 从session中获取userId
-	sess := sessions.Default(ctx)
-	userId := sess.Get("userId")
-	user, err := u.svc.Profile(ctx, userId.(int64))
-	if err != nil {
-		ctx.String(http.StatusOK, "系统错误")
-		return
-	}
-	ctx.JSON(http.StatusOK, user)
+	//sess := sessions.Default(ctx)
+	//userId := sess.Get("userId")
+	//user, err := u.svc.Profile(ctx, userId.(int64))
+	//if err != nil {
+	//	ctx.String(http.StatusOK, "系统错误")
+	//	return
+	//}
+	ctx.JSON(http.StatusOK, "获取个人信息")
 }

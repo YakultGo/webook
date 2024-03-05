@@ -31,6 +31,7 @@ func initWebServer() *gin.Engine {
 		AllowMethods:     []string{"PUT", "PATCH", "POST"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
+		ExposeHeaders:    []string{"x-jwt-token"},
 		AllowOriginFunc: func(origin string) bool {
 			if strings.HasPrefix(origin, "http://localhost") {
 				return true
@@ -48,10 +49,13 @@ func initWebServer() *gin.Engine {
 		panic(err)
 	}
 	server.Use(sessions.Sessions("mysession", store))
-	server.Use(middleware.NewLoginMiddlewareBuilder().
+	//server.Use(middleware.NewLoginMiddlewareBuilder().
+	//	IgnorePath("/users/signup").
+	//	IgnorePath("/users/login").Build())
+	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
 		IgnorePath("/users/signup").
-		IgnorePath("/users/login").Build())
-
+		IgnorePath("/users/login").
+		Build())
 	return server
 }
 

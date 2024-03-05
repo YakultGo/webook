@@ -28,9 +28,6 @@ func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 		if ok, val := l.paths[ctx.Request.URL.Path]; ok && val == true {
 			return
 		}
-		//if ctx.Request.URL.Path == "/users/signup" || ctx.Request.URL.Path == "/users/login" {
-		//	return
-		//}
 		sess := sessions.Default(ctx)
 		id := sess.Get("userId")
 		if id == nil {
