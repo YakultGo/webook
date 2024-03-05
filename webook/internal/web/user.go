@@ -35,7 +35,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 }
 func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 	ug := server.Group("/users")
-	ug.GET("/profile", u.Profile)
+	ug.GET("/profile", u.ProfileJWT)
 	ug.POST("/signup", u.Signup)
 	//ug.POST("/login", u.Login)
 	ug.POST("/login", u.LoginJWT)
@@ -143,7 +143,13 @@ func (u *UserHandler) LoginJWT(ctx *gin.Context) {
 		return
 	}
 	// 在这里使用JWT生成token
-	token := jwt.New(jwt.SigningMethodHS512)
+	claims := UserClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
+		},
+		UserId: user.Id,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	tokenStr, err := token.SignedString([]byte("4a1LwMzFjaCW4HrJETQsR8ybdYq82WMV"))
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "系统错误")
@@ -194,12 +200,32 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 }
 func (u *UserHandler) Profile(ctx *gin.Context) {
 	// 从session中获取userId
-	//sess := sessions.Default(ctx)
-	//userId := sess.Get("userId")
-	//user, err := u.svc.Profile(ctx, userId.(int64))
-	//if err != nil {
-	//	ctx.String(http.StatusOK, "系统错误")
-	//	return
-	//}
-	ctx.JSON(http.StatusOK, "获取个人信息")
+	sess := sessions.Default(ctx)
+	userId := sess.Get("userId")
+	user, err := u.svc.Profile(ctx, userId.(int64))
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	ctx.JSON(http.StatusOK, user)
+}
+func (u *UserHandler) ProfileJWT(ctx *gin.Context) {
+	// 从session中获取userId
+	c, _ := ctx.Get("claims")
+	claims, ok := c.(*UserClaims)
+	if !ok {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	user, err := u.svc.Profile(ctx, claims.UserId)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	ctx.JSON(http.StatusOK, user)
+}
+
+type UserClaims struct {
+	jwt.RegisteredClaims
+	UserId int64
 }

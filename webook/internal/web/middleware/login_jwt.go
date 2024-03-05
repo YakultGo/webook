@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"basic-go/webook/internal/web"
 	"encoding/gob"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -45,7 +46,8 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			return
 		}
 		tokenStr := segs[1]
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		claims := &web.UserClaims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte("4a1LwMzFjaCW4HrJETQsR8ybdYq82WMV"), nil
 		})
 		if err != nil {
@@ -58,5 +60,6 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+		ctx.Set("claims", claims)
 	}
 }
