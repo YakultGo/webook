@@ -38,6 +38,7 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 	ug.POST("/signup", u.Signup)
 	ug.POST("/login", u.Login)
 	ug.POST("/edit", u.Edit)
+	ug.POST("/logout", u.Logout)
 }
 
 func (u *UserHandler) Signup(ctx *gin.Context) {
@@ -111,14 +112,25 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	// 设置session
 	sess := sessions.Default(ctx)
 	sess.Set("userId", user.Id)
+	sess.Options(sessions.Options{
+		MaxAge: 60 * 60,
+	})
 	sess.Save()
 	ctx.String(http.StatusOK, "登录成功")
 }
+func (u *UserHandler) Logout(ctx *gin.Context) {
+	sess := sessions.Default(ctx)
+	sess.Options(sessions.Options{MaxAge: -1})
+	sess.Save()
+	sess.Clear()
+	ctx.String(http.StatusOK, "退出成功")
+}
+
 func (u *UserHandler) Edit(ctx *gin.Context) {
 	type EditReq struct {
 		Name        string `json:"name"`
-		birthday    string `json:"birthday"`
-		description string `json:"desciption"`
+		Birthday    string `json:"birthday"`
+		Description string `json:"description"`
 	}
 	var req EditReq
 	if err := ctx.Bind(&req); err != nil {
@@ -127,7 +139,7 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 	// 从session中获取userId
 	sess := sessions.Default(ctx)
 	userId := sess.Get("userId")
-	birth, err := time.Parse("2006-01-02", req.birthday)
+	birth, err := time.Parse("2006-01-02", req.Birthday)
 	if err != nil {
 		ctx.String(http.StatusOK, "系统错误")
 		return
@@ -136,7 +148,7 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 		Id:          userId.(int64),
 		NickName:    req.Name,
 		Birthday:    birth,
-		Description: req.description,
+		Description: req.Description,
 	})
 	if err != nil {
 		ctx.String(http.StatusOK, "系统错误")
