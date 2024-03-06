@@ -6,26 +6,39 @@ import (
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/middleware"
+	"basic-go/webook/pkg/middlewares/ratelimit"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
+	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"net/http"
 	"strings"
 	"time"
 )
 
 func main() {
-	db := initDB()
-	u := initUser(db)
-	server := initWebServer()
-	u.RegisterRoutes(server)
+	//db := initDB()
+	//u := initUser(db)
+	//server := initWebServer()
+	//u.RegisterRoutes(server)
+	server := gin.Default()
+	server.GET("/ping", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "pong")
+	})
 	server.Run(":8080")
 }
 
 func initWebServer() *gin.Engine {
 	server := gin.Default()
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:16379",
+	})
+	server.Use(ratelimit.NewBuilder(redisClient, time.Second, 100).Build())
+
 	server.Use(cors.New(cors.Config{
 		//AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"PUT", "PATCH", "POST"},
@@ -40,15 +53,18 @@ func initWebServer() *gin.Engine {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
+
 	//store := cookie.NewStore([]byte("secret"))
-	//store := memstore.NewStore([]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"),
-	//	[]byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
-	store, err := redis.NewStore(16, "tcp", "localhost:16379", "",
-		[]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"), []byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
-	if err != nil {
-		panic(err)
-	}
+	store := memstore.NewStore([]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"),
+		[]byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
+	//store, err := redis.NewStore(16, "tcp", "localhost:16379", "",
+	//	[]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"), []byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
+	//if err != nil {
+	//	panic(err)
+	//}
+
 	server.Use(sessions.Sessions("mysession", store))
+
 	//server.Use(middleware.NewLoginMiddlewareBuilder().
 	//	IgnorePath("/users/signup").
 	//	IgnorePath("/users/login").Build())

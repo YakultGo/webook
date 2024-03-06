@@ -12,6 +12,7 @@ services:
     ports:
       - "13306:3306"
   redis:
+    restart: always
     image: 'bitnami/redis:7.2.4'
     environment:
       - ALLOW_EMPTY_PASSWORD=yes

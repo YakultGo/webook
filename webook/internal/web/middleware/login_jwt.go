@@ -60,6 +60,11 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+		if claims.UserAgent != ctx.Request.UserAgent() {
+			ctx.String(http.StatusUnauthorized, "恶意入侵")
+			ctx.Abort()
+			return
+		}
 		ctx.Set("claims", claims)
 	}
 }
