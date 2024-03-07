@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webook-mysql
+spec:
+  selector:
+    app: webook-mysql
+  ports:
+    - protocol: TCP
+#     外部访问端口
+      port: 13309
+#     内部端口, mysql启动端口, 要对应的deployment那边暴露的端口
+      targetPort: 3306
+      nodePort: 30002
+  type: NodePort
+  
