@@ -47,7 +47,6 @@ func (svc *UserService) Login(ctx context.Context, u domain.User) (domain.User, 
 	}
 	return dbU, nil
 }
-
 func (svc *UserService) Edit(ctx context.Context, u domain.User) error {
 	return svc.repo.UpdateById(ctx, u)
 }

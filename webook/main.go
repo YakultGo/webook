@@ -9,8 +9,6 @@ import (
 	"basic-go/webook/internal/web/middleware"
 	"basic-go/webook/pkg/middlewares/ratelimit"
 	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
@@ -55,15 +53,15 @@ func initWebServer() *gin.Engine {
 	}))
 
 	//store := cookie.NewStore([]byte("secret"))
-	store := memstore.NewStore([]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"),
-		[]byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
+	//store := memstore.NewStore([]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"),
+	//	[]byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
 	//store, err := redis.NewStore(16, "tcp", "localhost:16379", "",
 	//	[]byte("vbCzjQ3aud0CFVjDFM91dHARoYbhHo5j"), []byte("EUCzqATwmrF00y08rXwoQ4nTBPh4Xnxc"))
 	//if err != nil {
 	//	panic(err)
 	//}
 
-	server.Use(sessions.Sessions("mysession", store))
+	//server.Use(sessions.Sessions("mysession", store))
 
 	//server.Use(middleware.NewLoginMiddlewareBuilder().
 	//	IgnorePath("/users/signup").

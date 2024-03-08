@@ -2,6 +2,7 @@ package repository
 
 import (
 	"basic-go/webook/internal/domain"
+	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
 	"context"
 )
@@ -12,12 +13,14 @@ var (
 )
 
 type UserRepository struct {
-	dao *dao.UserDAO
+	dao   *dao.UserDAO
+	cache *cache.UserCache
 }
 
-func NewUserRepository(dao *dao.UserDAO) *UserRepository {
+func NewUserRepository(d *dao.UserDAO, c *cache.UserCache) *UserRepository {
 	return &UserRepository{
-		dao: dao,
+		dao:   d,
+		cache: c,
 	}
 }
 func (r *UserRepository) Create(ctx context.Context, u domain.User) error {
@@ -49,15 +52,29 @@ func (r *UserRepository) UpdateById(ctx context.Context, u domain.User) error {
 }
 
 func (r *UserRepository) FindById(ctx context.Context, id int64) (domain.User, error) {
-	u, err := r.dao.FindById(ctx, id)
+	u, err := r.cache.Get(ctx, id)
+	if err == nil {
+		return u, nil
+	}
+	//if errors.Is(err, cache.ErrKeyNotExist) {
+	//	// 缓存没有，从数据库中取
+	//}
+	ue, err := r.dao.FindById(ctx, id)
 	if err != nil {
 		return domain.User{}, err
 	}
-	return domain.User{
-		Id:          u.Id,
-		Email:       u.Email,
-		NickName:    u.NickName,
-		Birthday:    u.Birthday,
-		Description: u.Description,
-	}, nil
+	u = domain.User{
+		Id:          ue.Id,
+		Email:       ue.Email,
+		NickName:    ue.NickName,
+		Birthday:    ue.Birthday,
+		Description: ue.Description,
+	}
+	go func() {
+		err = r.cache.Set(ctx, u)
+		if err != nil {
+			// 打日志，做监控
+		}
+	}()
+	return u, nil
 }
