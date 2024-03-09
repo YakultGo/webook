@@ -7,11 +7,11 @@ method = "POST"
 
 -- 共有的headers设置
 wrk.headers["Content-Type"] = "application/json"
-wrk.headers["User-Agent"] = ""
+wrk.headers["User-Agent"] = "PostmanRuntime/7.36.3"
 
 -- 发送第一次authenticate认证请求
 request = function ()
-    body = '{"email": "123@qq.com","password": "Hello@#$world123"}'
+    body = '{"email": "Yakult@qq.com","password": "TZX5at4nbVHF0"}'
     return wrk.format(method, path, wrk.headers, body)
 end
 

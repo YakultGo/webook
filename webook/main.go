@@ -3,6 +3,7 @@ package main
 import (
 	"basic-go/webook/config"
 	"basic-go/webook/internal/repository"
+	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
@@ -75,7 +76,11 @@ func initWebServer() *gin.Engine {
 
 func initUser(db *gorm.DB) *web.UserHandler {
 	ud := dao.NewUserDAO(db)
-	repo := repository.NewUserRepository(ud)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: config.Config.Redis.Addr,
+	})
+	c := cache.NewUserCache(redisClient, time.Minute*10)
+	repo := repository.NewUserRepository(ud, c)
 	svc := service.NewUserService(repo)
 	u := web.NewUserHandler(svc)
 	return u
