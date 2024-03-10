@@ -54,3 +54,18 @@ func (svc *UserService) Edit(ctx context.Context, u domain.User) error {
 func (svc *UserService) Profile(ctx context.Context, id int64) (domain.User, error) {
 	return svc.repo.FindById(ctx, id)
 }
+
+func (svc *UserService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
+	u, err := svc.repo.FindByPhone(ctx, phone)
+	if !errors.Is(err, repository.ErrUserNotFound) {
+		return u, err
+	}
+	err = svc.repo.Create(ctx, domain.User{
+		Phone: phone,
+	})
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return svc.repo.FindByPhone(ctx, phone)
+}

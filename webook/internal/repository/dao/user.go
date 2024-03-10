@@ -50,6 +50,7 @@ func (dao *UserDAO) UpdateById(ctx context.Context, u User) error {
 		NickName:    u.NickName,
 		Birthday:    u.Birthday,
 		Description: u.Description,
+		UpdateTime:  u.UpdateTime,
 	}).Error
 }
 func (dao *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
@@ -57,17 +58,22 @@ func (dao *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
 	err := dao.db.WithContext(ctx).Where("id = ?", id).First(&u).Error
 	return u, err
 }
+func (dao *UserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
+	var u User
+	err := dao.db.WithContext(ctx).Where("phone = ?", phone).First(&u).Error
+	return u, err
+}
 
 // User 直接对应数据库中的表结构
 type User struct {
 	Id          int64  `gorm:"primaryKey,autoIncrement"`
 	Email       string `gorm:"unique"`
+	Phone       string
 	NickName    string
 	Birthday    time.Time
 	Description string
 	Password    string
-	// 创建时间（毫秒）
+	// 单位毫秒
 	CreateTime int64
-	// 更新时间
 	UpdateTime int64
 }

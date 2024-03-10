@@ -24,10 +24,7 @@ func NewUserRepository(d *dao.UserDAO, c *cache.UserCache) *UserRepository {
 	}
 }
 func (r *UserRepository) Create(ctx context.Context, u domain.User) error {
-	return r.dao.Insert(ctx, dao.User{
-		Email:    u.Email,
-		Password: u.Password,
-	})
+	return r.dao.Insert(ctx, r.domainToEntity(u))
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (domain.User, error) {
@@ -41,14 +38,17 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (domain.
 		Password: u.Password,
 	}, nil
 }
-
+func (r *UserRepository) FindByPhone(ctx context.Context, phone string) (domain.User, error) {
+	u, err := r.dao.FindByPhone(ctx, phone)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return domain.User{
+		Id: u.Id,
+	}, nil
+}
 func (r *UserRepository) UpdateById(ctx context.Context, u domain.User) error {
-	return r.dao.UpdateById(ctx, dao.User{
-		Id:          u.Id,
-		NickName:    u.NickName,
-		Birthday:    u.Birthday,
-		Description: u.Description,
-	})
+	return r.dao.UpdateById(ctx, r.domainToEntity(u))
 }
 
 func (r *UserRepository) FindById(ctx context.Context, id int64) (domain.User, error) {
@@ -77,4 +77,15 @@ func (r *UserRepository) FindById(ctx context.Context, id int64) (domain.User, e
 		}
 	}()
 	return u, nil
+}
+
+func (r *UserRepository) domainToEntity(user domain.User) dao.User {
+	return dao.User{
+		Id:          user.Id,
+		Email:       user.Email,
+		Password:    user.Password,
+		Phone:       user.Phone,
+		NickName:    user.NickName,
+		Description: user.Description,
+	}
 }

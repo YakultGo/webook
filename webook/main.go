@@ -6,6 +6,7 @@ import (
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
+	"basic-go/webook/internal/service/sms/memory"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/middleware"
 	"basic-go/webook/pkg/middlewares/ratelimit"
@@ -20,13 +21,13 @@ import (
 
 func main() {
 	db := initDB()
-	u := initUser(db)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: config.Config.Redis.Addr,
+	})
+	u := initUser(db, rdb)
 	server := initWebServer()
 	u.RegisterRoutes(server)
-	//server := gin.Default()
-	//server.GET("/ping", func(ctx *gin.Context) {
-	//	ctx.String(http.StatusOK, "pong")
-	//})
+
 	server.Run(":8080")
 }
 
@@ -70,19 +71,20 @@ func initWebServer() *gin.Engine {
 	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
 		IgnorePath("/users/signup").
 		IgnorePath("/users/login").
-		Build())
+		IgnorePath("/users/login_sms/code/send").Build())
 	return server
 }
 
-func initUser(db *gorm.DB) *web.UserHandler {
+func initUser(db *gorm.DB, rdb redis.Cmdable) *web.UserHandler {
 	ud := dao.NewUserDAO(db)
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: config.Config.Redis.Addr,
-	})
-	c := cache.NewUserCache(redisClient, time.Minute*10)
+	c := cache.NewUserCache(rdb, time.Minute*10)
 	repo := repository.NewUserRepository(ud, c)
 	svc := service.NewUserService(repo)
-	u := web.NewUserHandler(svc)
+	codeCache := cache.NewCodeCache(rdb)
+	codeRepo := repository.NewCodeRepository(codeCache)
+	smsSvc := memory.NewService()
+	codeSvc := service.NewCodeService(codeRepo, smsSvc)
+	u := web.NewUserHandler(svc, codeSvc)
 	return u
 }
 
