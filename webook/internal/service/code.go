@@ -42,7 +42,7 @@ func (svc *CodeService) Send(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	err = svc.smsSvc.Send(ctx, codeTemplateId, []string{code}, phone)
+	err = svc.smsSvc.Send(ctx, codeTemplateId, []string{"code", code}, phone)
 	return err
 }
 

@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrUserDuplicateEmail = errors.New("邮箱冲突")
-	ErrUserNotFound       = gorm.ErrRecordNotFound
+	ErrUserDuplicate = errors.New("邮箱冲突")
+	ErrUserNotFound  = gorm.ErrRecordNotFound
 )
 
 type UserDAO struct {
@@ -33,7 +33,7 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 		const uniqueConstraintErrNo = 1062
 		if mysqlErr.Number == uniqueConstraintErrNo {
 			// 邮箱冲突
-			return ErrUserDuplicateEmail
+			return ErrUserDuplicate
 		}
 	}
 	return err
@@ -66,14 +66,14 @@ func (dao *UserDAO) FindByPhone(ctx context.Context, phone string) (User, error)
 
 // User 直接对应数据库中的表结构
 type User struct {
-	Id          int64  `gorm:"primaryKey,autoIncrement"`
-	Email       string `gorm:"unique"`
-	Phone       string
-	NickName    string
-	Birthday    time.Time
-	Description string
-	Password    string
+	Id          int64     `gorm:"primaryKey,autoIncrement"`
+	Email       string    `gorm:"unique;default:NULL"`
+	Phone       string    `gorm:"unique;default:NULL"`
+	NickName    string    `gorm:"default:NULL"`
+	Birthday    time.Time `gorm:"default:NULL"`
+	Description string    `gorm:"default:NULL"`
+	Password    string    `gorm:"default:NULL"`
 	// 单位毫秒
-	CreateTime int64
-	UpdateTime int64
+	CreateTime int64 `gorm:"default:NULL"`
+	UpdateTime int64 `gorm:"default:NULL"`
 }

@@ -13,7 +13,7 @@ if ttl == -1 then
     --   key存在，但是没有过期时间
     return -2
     --   -2表示不存在该key，540 = 600 - 60
-elseif tt1 == -2 or ttl < 540 then
+elseif ttl == -2 or ttl < 540 then
     redis.call("set", key, val)
     redis.call("expire", key, 600)
     redis.call("set", cntKey, 3)

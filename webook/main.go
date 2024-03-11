@@ -71,7 +71,8 @@ func initWebServer() *gin.Engine {
 	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
 		IgnorePath("/users/signup").
 		IgnorePath("/users/login").
-		IgnorePath("/users/login_sms/code/send").Build())
+		IgnorePath("/users/login_sms/code/send").
+		IgnorePath("/users/login_sms").Build())
 	return server
 }
 
