@@ -4,7 +4,6 @@ import (
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
 	"errors"
-	"fmt"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -17,15 +16,17 @@ const (
 	biz = "login"
 )
 
+var _ handler = (*UserHandler)(nil)
+
 // UserHandler 与用户有关的路由
 type UserHandler struct {
-	svc         *service.UserService
+	svc         service.UserService
 	emailExp    *regexp.Regexp
 	passwordExp *regexp.Regexp
-	codeSvc     *service.CodeService
+	codeSvc     service.CodeService
 }
 
-func NewUserHandler(svc *service.UserService, codeSvc *service.CodeService) *UserHandler {
+func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserHandler {
 	const (
 		emailRegexPattern    = `\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`
 		passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$`
@@ -172,7 +173,6 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		return
 	}
 	ctx.String(http.StatusOK, "注册成功")
-	fmt.Printf("%v", req)
 }
 func (u *UserHandler) Login(ctx *gin.Context) {
 	type LoginReq struct {
