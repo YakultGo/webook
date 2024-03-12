@@ -76,10 +76,7 @@ func (r *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.U
 		Description: ue.Description,
 	}
 	go func() {
-		err = r.cache.Set(ctx, u)
-		if err != nil {
-			// 打日志，做监控
-		}
+		_ = r.cache.Set(ctx, u)
 	}()
 	return u, nil
 }

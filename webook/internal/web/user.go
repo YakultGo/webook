@@ -44,7 +44,6 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 	ug := server.Group("/users")
 	ug.GET("/profile", u.ProfileJWT)
 	ug.POST("/signup", u.Signup)
-	//ug.POST("/login", u.Login)
 	ug.POST("/login", u.LoginJWT)
 	ug.POST("/edit", u.Edit)
 	ug.POST("/logout", u.Logout)
