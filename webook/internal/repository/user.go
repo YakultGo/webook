@@ -64,9 +64,6 @@ func (r *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.U
 	if err == nil {
 		return u, nil
 	}
-	//if errors.Is(err, cache.ErrKeyNotExist) {
-	//	// 缓存没有，从数据库中取
-	//}
 	ue, err := r.dao.FindById(ctx, id)
 	if err != nil {
 		return domain.User{}, err

@@ -1,26 +1,29 @@
 package tencent
 
 import (
+	"basic-go/webook/internal/service/sms"
 	"context"
 	"fmt"
-	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111" // 引入sms
+	Tsms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111" // 引入sms
 )
 
-type Service struct {
+var _ sms.Service = (*TenService)(nil)
+
+type TenService struct {
 	appId    *string
 	signName *string
-	client   *sms.Client
+	client   *Tsms.Client
 }
 
-func NewService(client *sms.Client, appId, signName string) *Service {
-	return &Service{
+func NewService(client *Tsms.Client, appId, signName string) *TenService {
+	return &TenService{
 		appId:    &appId,
 		signName: &signName,
 		client:   client,
 	}
 }
-func (s *Service) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
-	req := sms.NewSendSmsRequest()
+func (s *TenService) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
+	req := Tsms.NewSendSmsRequest()
 	req.SmsSdkAppId = s.appId
 	req.SignName = s.signName
 	req.TemplateId = &tpl
@@ -38,7 +41,7 @@ func (s *Service) Send(ctx context.Context, tpl string, args []string, numbers .
 	return nil
 }
 
-func (s *Service) sliceToPtrStr(str []string) []*string {
+func (s *TenService) sliceToPtrStr(str []string) []*string {
 	var res []*string
 	for _, v := range str {
 		res = append(res, &v)

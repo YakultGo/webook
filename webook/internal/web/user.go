@@ -172,6 +172,10 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "邮箱冲突")
 		return
 	}
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
 	ctx.String(http.StatusOK, "注册成功")
 }
 func (u *UserHandler) Login(ctx *gin.Context) {
@@ -287,10 +291,14 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "修改成功")
 }
 func (u *UserHandler) Profile(ctx *gin.Context) {
-	// 从session中获取userId
-	sess := sessions.Default(ctx)
-	userId := sess.Get("userId")
-	user, err := u.svc.Profile(ctx, userId.(int64))
+	// JWT中获取ID
+	c, _ := ctx.Get("claims")
+	claims, ok := c.(*UserClaims)
+	if !ok {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	user, err := u.svc.Profile(ctx, claims.UserId)
 	if err != nil {
 		ctx.String(http.StatusOK, "系统错误")
 		return

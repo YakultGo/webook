@@ -1,17 +1,20 @@
 package memory
 
 import (
+	"basic-go/webook/internal/service/sms"
 	"context"
 	"fmt"
 )
 
-type Service struct {
+var _ sms.Service = (*MemoryService)(nil)
+
+type MemoryService struct {
 }
 
-func NewService() *Service {
-	return &Service{}
+func NewService() *MemoryService {
+	return &MemoryService{}
 }
-func (s Service) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
+func (s MemoryService) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
 	fmt.Printf("[%s : %s]", args[0], args[1])
 	return nil
 }
