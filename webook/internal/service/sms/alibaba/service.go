@@ -22,7 +22,7 @@ func NewService(client *dysmsapi20170525.Client, signName string) *AliService {
 	}
 }
 
-func (s AliService) Send(ctx context.Context, tpl string, args []string, number ...string) error {
+func (s *AliService) Send(ctx context.Context, tpl string, args []string, number ...string) error {
 	req := dysmsapi20170525.SendSmsRequest{}
 	req.SignName = tea.String(s.signName)
 	req.PhoneNumbers = tea.String(number[0])

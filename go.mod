@@ -3,6 +3,7 @@ module basic-go
 go 1.22.0
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/alibabacloud-go/dysmsapi-20170525/v3 v3.0.6
 	github.com/alibabacloud-go/tea v1.1.19
 	github.com/dlclark/regexp2 v1.11.0
@@ -22,7 +23,6 @@ require (
 )
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4 // indirect
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.2 // indirect
 	github.com/alibabacloud-go/debug v0.0.0-20190504072949-9472017b5c68 // indirect
