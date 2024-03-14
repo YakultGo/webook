@@ -16,6 +16,13 @@ type RateLimitSMSService struct {
 	limiter ratelimit.Limiter
 }
 
+func NewRateLimitSMSService(service sms.Service, limiter ratelimit.Limiter) *RateLimitSMSService {
+	return &RateLimitSMSService{
+		svc:     service,
+		limiter: limiter,
+	}
+}
+
 func (s *RateLimitSMSService) Send(ctx context.Context, tpl string, args []string, numbers ...string) error {
 	limited, err := s.limiter.Limit(ctx, "sms:alibaba")
 	if err != nil {

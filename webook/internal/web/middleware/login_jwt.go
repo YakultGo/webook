@@ -1,21 +1,24 @@
 package middleware
 
 import (
-	"basic-go/webook/internal/web"
+	myJwt "basic-go/webook/internal/web/jwt"
 	"encoding/gob"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
-	"strings"
 	"time"
 )
 
 type LoginJWTMiddlewareBuilder struct {
 	paths map[string]bool
+	myJwt.Handler
 }
 
-func NewLoginJWTMiddlewareBuilder() *LoginJWTMiddlewareBuilder {
-	return &LoginJWTMiddlewareBuilder{paths: make(map[string]bool)}
+func NewLoginJWTMiddlewareBuilder(jwtHandler myJwt.Handler) *LoginJWTMiddlewareBuilder {
+	return &LoginJWTMiddlewareBuilder{
+		paths:   make(map[string]bool),
+		Handler: jwtHandler,
+	}
 }
 
 func (l *LoginJWTMiddlewareBuilder) IgnorePath(path string) *LoginJWTMiddlewareBuilder {
@@ -32,23 +35,10 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			return
 		}
 		// 使用JWT校验
-		tokenHeader := ctx.GetHeader("Authorization")
-		if tokenHeader == "" {
-			ctx.String(http.StatusUnauthorized, "未登录")
-			ctx.Abort()
-			return
-		}
-		// Bearer token
-		segs := strings.Split(tokenHeader, " ")
-		if len(segs) != 2 {
-			ctx.String(http.StatusUnauthorized, "未登录")
-			ctx.Abort()
-			return
-		}
-		tokenStr := segs[1]
-		claims := &web.UserClaims{}
+		tokenStr := l.Handler.ExtractToken(ctx)
+		claims := &myJwt.UserClaims{}
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte("4a1LwMzFjaCW4HrJETQsR8ybdYq82WMV"), nil
+			return myJwt.AccessTokenKey, nil
 		})
 		if err != nil {
 			ctx.String(http.StatusUnauthorized, "未登录")
@@ -62,6 +52,12 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		}
 		if claims.UserAgent != ctx.Request.UserAgent() {
 			ctx.String(http.StatusUnauthorized, "恶意入侵")
+			ctx.Abort()
+			return
+		}
+		exist := l.CheckSession(ctx, claims.Ssid)
+		if !exist {
+			ctx.String(http.StatusUnauthorized, "未登录")
 			ctx.Abort()
 			return
 		}
