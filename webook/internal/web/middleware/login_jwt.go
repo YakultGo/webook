@@ -55,8 +55,8 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		exist := l.CheckSession(ctx, claims.Ssid)
-		if !exist {
+		err = l.CheckSession(ctx, claims.Ssid)
+		if err != nil {
 			ctx.String(http.StatusUnauthorized, "未登录")
 			ctx.Abort()
 			return
