@@ -19,7 +19,7 @@ func NewOAuth2WechatHandler(svc wechat.Service) *OAuth2WechatHandler {
 func (h *OAuth2WechatHandler) RegisterRoutes(server *gin.Engine) {
 	g := server.Group("/oauth2/wechat")
 	g.GET("/author", h.AuthURL)
-	g.Any("/callback", h.Callback)
+	g.GET("/callback", h.Callback)
 }
 
 func (h *OAuth2WechatHandler) AuthURL(ctx *gin.Context) {

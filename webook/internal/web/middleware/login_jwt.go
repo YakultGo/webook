@@ -3,6 +3,7 @@ package middleware
 import (
 	myJwt "basic-go/webook/internal/web/jwt"
 	"encoding/gob"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
@@ -42,11 +43,13 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		})
 		if err != nil {
 			ctx.String(http.StatusUnauthorized, "未登录")
+			fmt.Println("解析token失败", err)
 			ctx.Abort()
 			return
 		}
 		if !token.Valid {
 			ctx.String(http.StatusUnauthorized, "未登录")
+			fmt.Println("token无效")
 			ctx.Abort()
 			return
 		}
@@ -57,6 +60,7 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 		}
 		err = l.CheckSession(ctx, claims.Ssid)
 		if err != nil {
+			fmt.Println("session校验失败", err)
 			ctx.String(http.StatusUnauthorized, "未登录")
 			ctx.Abort()
 			return

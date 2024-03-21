@@ -2,3 +2,5 @@ mysql:
   dsn: "root:root@tcp(localhost:13306)/webook"
 redis:
   addr: "localhost:16379"
+mongo:
+  dsn: "mongodb://root:root@localhost:27017"

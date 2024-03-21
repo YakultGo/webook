@@ -9,7 +9,6 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"time"
 )
@@ -26,12 +25,10 @@ type UserHandler struct {
 	emailExp    *regexp.Regexp
 	passwordExp *regexp.Regexp
 	codeSvc     service.CodeService
-	cmd         redis.Cmdable
 	myJwt.Handler
 }
 
-func NewUserHandler(svc service.UserService, codeSvc service.CodeService,
-	cmd redis.Cmdable, jwtHandler myJwt.Handler) *UserHandler {
+func NewUserHandler(svc service.UserService, codeSvc service.CodeService, jwtHandler myJwt.Handler) *UserHandler {
 	const (
 		emailRegexPattern    = `\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`
 		passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$`
@@ -44,7 +41,6 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService,
 		passwordExp: passwordExp,
 		codeSvc:     codeSvc,
 		Handler:     jwtHandler,
-		cmd:         cmd,
 	}
 }
 func (u *UserHandler) RegisterRoutes(server *gin.Engine) {

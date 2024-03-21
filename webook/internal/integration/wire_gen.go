@@ -12,6 +12,7 @@ import (
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
+	"basic-go/webook/internal/web/jwt"
 	"basic-go/webook/ioc"
 	"github.com/gin-gonic/gin"
 )
@@ -19,9 +20,11 @@ import (
 // Injectors from wire.go:
 
 func InitWebServer() *gin.Engine {
-	cmdable := ioc.InitRedis()
-	v := ioc.InitMiddlewares(cmdable)
-	db := ioc.InitDB()
+	cmdable := initRedis()
+	limiter := ioc.NewRateLimiter(cmdable)
+	handler := jwt.NewRedisJWTHandler(cmdable)
+	v := ioc.InitMiddlewares(limiter, handler)
+	db := initTestGORM()
 	userDAO := dao.NewUserDAO(db)
 	userCache := cache.NewUserCache(cmdable)
 	userRepository := repository.NewUserRepository(userDAO, userCache)
@@ -30,7 +33,13 @@ func InitWebServer() *gin.Engine {
 	codeRepository := repository.NewCodeRepository(codeCache)
 	smsService := ioc.InitSMSService()
 	codeService := service.NewCodeService(codeRepository, smsService)
-	userHandler := web.NewUserHandler(userService, codeService)
-	engine := ioc.InitGin(v, userHandler)
+	userHandler := web.NewUserHandler(userService, codeService, cmdable, handler)
+	wechatService := ioc.InitOAuth2WechatService()
+	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService)
+	articleDAO := dao.NewArticleDAO(db)
+	articleRepository := repository.NewArticleRepository(articleDAO)
+	articleService := service.NewArticleService(articleRepository)
+	articleHandler := web.NewArticleHandler(articleService)
+	engine := ioc.InitGin(v, userHandler, oAuth2WechatHandler, articleHandler)
 	return engine
 }

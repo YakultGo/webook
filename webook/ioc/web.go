@@ -13,11 +13,13 @@ import (
 )
 
 func InitGin(handlerFunc []gin.HandlerFunc, handler *web.UserHandler,
-	oauth2WeChatHandler *web.OAuth2WechatHandler) *gin.Engine {
+	oauth2WeChatHandler *web.OAuth2WechatHandler,
+	articleHandler *web.ArticleHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(handlerFunc...)
 	handler.RegisterRoutes(server)
 	oauth2WeChatHandler.RegisterRoutes(server)
+	articleHandler.RegisterRoutes(server)
 	return server
 }
 

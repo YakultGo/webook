@@ -5,7 +5,7 @@ services:
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      - MYSQL_ROOT_PASSWORD=root
     volumes:
       # 初始化脚本
       - ./script/mysql/:/docker-entrypoint-initdb.d/
@@ -24,3 +24,10 @@ services:
       - ALLOW_NONE_AUTHENTICATION=yes
     ports:
       - '12379:2379'
+  mongo:
+    image: 'bitnami/mongodb:7.0.6'
+    environment:
+      - MONGODB_ROOT_USER=root
+      - MONGODB_ROOT_PASSWORD=root
+    ports:
+      - '27017:27017'
